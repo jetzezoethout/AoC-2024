@@ -1,0 +1,6 @@
+executable dayxx
+    import:           common
+    main-is:          Main.hs
+    other-modules:    
+    build-depends:    utils
+    hs-source-dirs:   dayxx
