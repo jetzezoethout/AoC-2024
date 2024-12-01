@@ -29,3 +29,10 @@ library utils
                     , ProcessFile
                     , TaggedRow
     hs-source-dirs:   utils
+
+executable day01
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Locations
+    build-depends:    utils
+    hs-source-dirs:   day01
