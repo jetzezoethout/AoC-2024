@@ -30,6 +30,13 @@ library utils
                     , TaggedRow
     hs-source-dirs:   utils
 
+executable day02
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Report
+    build-depends:    utils
+    hs-source-dirs:   day02
+
 executable day01
     import:           common
     main-is:          Main.hs
