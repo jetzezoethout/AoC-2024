@@ -11,6 +11,7 @@ common common
                         , OverloadedStrings
                         , OverloadedRecordDot
                         , InstanceSigs
+                        , TupleSections
     build-depends:    base ^>=4.17.2.1
                     , text
                     , split
@@ -29,6 +30,14 @@ library utils
                     , ProcessFile
                     , TaggedRow
     hs-source-dirs:   utils
+
+executable day03
+    import:           common
+    main-is:          Main.hs
+    other-modules:    InstructionParser
+                    , Instruction
+    build-depends:    utils
+    hs-source-dirs:   day03
 
 executable day02
     import:           common
