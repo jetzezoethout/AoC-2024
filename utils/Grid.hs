@@ -41,3 +41,7 @@ grid `safeAtCoordinate` coordinate =
 isInside :: Coordinate -> Grid a -> Bool
 Coordinate {..} `isInside` Grid {..} =
   0 <= row && row < height && 0 <= column && column < width
+
+allCoordinates :: Grid a -> [Coordinate]
+allCoordinates Grid {..} =
+  [Coordinate row col | row <- [0 .. height - 1], col <- [0 .. width - 1]]
