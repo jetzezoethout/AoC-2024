@@ -31,6 +31,14 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day06
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Area
+                    , Guard
+    build-depends:    utils
+    hs-source-dirs:   day06
+
 executable day05
     import:           common
     main-is:          Main.hs
