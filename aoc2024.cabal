@@ -28,7 +28,7 @@ library utils
                     , Grid
                     , Parsers
                     , ProcessFile
-                    , TaggedRow
+                    , LocatedChar
     hs-source-dirs:   utils
 
 executable day05
