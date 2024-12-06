@@ -1,10 +1,11 @@
 module Area where
 
-import           Coordinate (Coordinate)
-import qualified Data.Set   as S
-import           Data.Text  (Text)
-import           Grid       (Grid, parseGrid, safeAtCoordinate)
-import           Guard      (Guard (..), forward, inFrontOf, turn)
+import           Coordinate    (Coordinate)
+import           Data.Function (on)
+import           Data.List     (nubBy)
+import           Data.Text     (Text)
+import           Grid          (Grid, parseGrid, safeAtCoordinate)
+import           Guard         (Guard (..), forward, inFrontOf, turn)
 
 data AreaElement
   = Obstacle
@@ -32,40 +33,27 @@ Area {..} `inspectAt` coord =
 obstruct :: Coordinate -> Area -> Area
 obstruct obstacle area = area {added = Just obstacle}
 
-walk :: Area -> Guard -> Int
-walk area = go S.empty
+walk :: Area -> Guard -> [Guard]
+walk area = go
   where
-    go seen guard =
-      let newSeen = guard `S.insert` seen
-       in case area `inspectAt` inFrontOf guard of
-            Just Free     -> go newSeen $ forward guard
-            Just Obstacle -> go newSeen $ turn guard
-            Nothing       -> S.size $ S.map position newSeen
+    go :: Guard -> [Guard]
+    go guard =
+      guard
+        : case area `inspectAt` inFrontOf guard of
+            Just Free     -> go (forward guard)
+            Just Obstacle -> go (turn guard)
+            Nothing       -> []
 
-endsInLoop :: Area -> S.Set Guard -> Guard -> Bool
-endsInLoop area seen guard =
-  (guard `S.member` seen)
-    || (let newSeen = guard `S.insert` seen
-         in case area `inspectAt` inFrontOf guard of
-              Just Free     -> endsInLoop area newSeen $ forward guard
-              Just Obstacle -> endsInLoop area newSeen $ turn guard
-              Nothing       -> False)
+visited :: Area -> Guard -> [Coordinate]
+visited area = map position . nubBy ((==) `on` position) . walk area
 
-foolGuard :: Area -> Guard -> Int
-foolGuard area = go S.empty S.empty
+isSuitableObstacle :: Area -> Guard -> Coordinate -> Bool
+isSuitableObstacle area guard obstacle =
+  isLoop $ walk (obstruct obstacle area) guard
+
+-- Floyd's tortoise and hare loop detection algo
+isLoop :: Eq a => [a] -> Bool
+isLoop stream = go stream stream
   where
-    go tried seen guard =
-      case area `inspectAt` inFrontOf guard of
-        Just Free ->
-          let extra =
-                if not (inFrontOf guard `S.member` tried)
-                     && endsInLoop (obstruct (inFrontOf guard) area) seen guard
-                  then 1
-                  else 0
-           in extra
-                + go
-                    (inFrontOf guard `S.insert` tried)
-                    (guard `S.insert` seen)
-                    (forward guard)
-        Just Obstacle -> go tried (guard `S.insert` seen) $ turn guard
-        Nothing -> 0
+    go (x:xs) (_:y:ys) = x == y || go xs ys
+    go _ _             = False
