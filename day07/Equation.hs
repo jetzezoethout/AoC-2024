@@ -1,6 +1,5 @@
 module Equation where
 
-import           Control.Monad      (guard)
 import           Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 import           Data.Maybe         (mapMaybe)
@@ -27,16 +26,17 @@ applyTo :: Int -> Int -> InverseOperation -> Maybe Int
 applyTo target x f = f target x
 
 unPlus :: InverseOperation
-unPlus target x = guard (target > x) >> Just (target - x)
+unPlus target x = [target - x | target > x]
 
 unTimes :: InverseOperation
-unTimes target x = guard (target `mod` x == 0) >> Just (target `div` x)
+unTimes target x = [target `div` x | target `mod` x == 0]
 
 unConcatenate :: InverseOperation
-unConcatenate target x = do
-  prefix <- T.stripSuffix (toText x) (toText target)
-  guard $ T.length prefix > 0
-  return $ parseUnsignedInt prefix
+unConcatenate target x =
+  [ parseUnsignedInt prefix
+  | prefix <- T.stripSuffix (toText x) (toText target)
+  , T.length prefix > 0
+  ]
   where
     toText = T.pack . show
 
