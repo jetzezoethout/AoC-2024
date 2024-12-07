@@ -1,11 +1,11 @@
 module Area where
 
-import           Coordinate    (Coordinate)
-import           Data.Function (on)
-import           Data.List     (nubBy)
-import           Data.Text     (Text)
-import           Grid          (Grid, parseGrid, safeAtCoordinate)
-import           Guard         (Guard (..), forward, inFrontOf, turn)
+import           Coordinate (Coordinate)
+import           Data.Set   (Set)
+import qualified Data.Set   as S
+import           Data.Text  (Text)
+import           Grid       (Grid, parseGrid, safeAtCoordinate)
+import           Guard      (Guard (..), forward, inFrontOf, turn)
 
 data AreaElement
   = Obstacle
@@ -33,27 +33,44 @@ Area {..} `inspectAt` coord =
 obstruct :: Coordinate -> Area -> Area
 obstruct obstacle area = area {added = Just obstacle}
 
-walk :: Area -> Guard -> [Guard]
-walk area = go
+visitedLocations :: Area -> Guard -> Int
+visitedLocations area = go S.empty
   where
-    go :: Guard -> [Guard]
-    go guard =
-      guard
-        : case area `inspectAt` inFrontOf guard of
-            Just Free     -> go (forward guard)
-            Just Obstacle -> go (turn guard)
-            Nothing       -> []
+    go visited guard =
+      let updatedVisited = position guard `S.insert` visited
+       in case area `inspectAt` inFrontOf guard of
+            Just Free     -> go updatedVisited $ forward guard
+            Just Obstacle -> go updatedVisited $ turn guard
+            Nothing       -> S.size updatedVisited
 
-visited :: Area -> Guard -> [Coordinate]
-visited area = map position . nubBy ((==) `on` position) . walk area
-
-isSuitableObstacle :: Area -> Guard -> Coordinate -> Bool
-isSuitableObstacle area guard obstacle =
-  isLoop $ walk (obstruct obstacle area) guard
-
--- Floyd's tortoise and hare loop detection algo
-isLoop :: Eq a => [a] -> Bool
-isLoop stream = go stream stream
+endsInLoop :: Area -> Set Guard -> Guard -> Bool
+endsInLoop area = go
   where
-    go (x:xs) (_:y:ys) = x == y || go xs ys
-    go _ _             = False
+    go previousBlocks guard =
+      case area `inspectAt` inFrontOf guard of
+        Just Free -> go previousBlocks $ forward guard
+        Just Obstacle ->
+          (guard `S.member` previousBlocks)
+            || go (guard `S.insert` previousBlocks) (turn guard)
+        Nothing -> False
+
+foolGuard :: Area -> Guard -> Int
+foolGuard area start = go 0 (S.singleton $ position start) S.empty start
+  where
+    go acc tried previousBlocks guard =
+      case area `inspectAt` inFrontOf guard of
+        Just Free ->
+          let toObstruct = inFrontOf guard
+              isSuccess =
+                not (toObstruct `S.member` tried)
+                  && endsInLoop (obstruct toObstruct area) previousBlocks guard
+           in go
+                (if isSuccess
+                   then acc + 1
+                   else acc)
+                (toObstruct `S.insert` tried)
+                previousBlocks
+                (forward guard)
+        Just Obstacle ->
+          go acc tried (guard `S.insert` previousBlocks) $ turn guard
+        Nothing -> acc
