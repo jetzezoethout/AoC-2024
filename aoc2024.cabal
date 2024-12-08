@@ -32,6 +32,14 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day08
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Antennas
+                    , Dimensions
+    build-depends:    utils
+    hs-source-dirs:   day08
+
 executable day07
     import:           common
     main-is:          Main.hs
