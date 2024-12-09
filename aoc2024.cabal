@@ -32,6 +32,16 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day09
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Disk
+                    , Free
+                    , Fragmentable
+                    , Unfragmentable
+    build-depends:    utils
+    hs-source-dirs:   day09
+
 executable day08
     import:           common
     main-is:          Main.hs
