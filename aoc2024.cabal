@@ -32,6 +32,13 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day10
+    import:           common
+    main-is:          Main.hs
+    other-modules:    TopographicMap
+    build-depends:    utils
+    hs-source-dirs:   day10
+
 executable day09
     import:           common
     main-is:          Main.hs
