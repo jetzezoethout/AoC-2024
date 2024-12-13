@@ -39,6 +39,14 @@ executable day13
     build-depends:    utils
     hs-source-dirs:   day13
 
+executable day12
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Region
+                    , FencedRegion
+    build-depends:    utils
+    hs-source-dirs:   day12
+
 executable day11
     import:           common
     main-is:          Main.hs
