@@ -32,6 +32,13 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day13
+    import:           common
+    main-is:          Main.hs
+    other-modules:    ClawMachine
+    build-depends:    utils
+    hs-source-dirs:   day13
+
 executable day11
     import:           common
     main-is:          Main.hs
