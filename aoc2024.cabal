@@ -32,6 +32,14 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day14
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Robot
+                    , Quadrant
+    build-depends:    utils
+    hs-source-dirs:   day14
+
 executable day13
     import:           common
     main-is:          Main.hs
