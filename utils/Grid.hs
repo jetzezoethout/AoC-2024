@@ -26,9 +26,12 @@ fromNestedList xxs =
     , grid = fromList $ map fromList xxs
     }
 
+parseGridLines :: (Char -> a) -> [Text] -> Grid a
+parseGridLines parser textLines =
+  fromNestedList $ map (map parser . T.unpack) textLines
+
 parseGrid :: (Char -> a) -> Text -> Grid a
-parseGrid parser text =
-  fromNestedList $ map (map parser . T.unpack) $ T.lines text
+parseGrid parser text = parseGridLines parser $ T.lines text
 
 atCoordinate :: Grid a -> Coordinate -> a
 Grid {..} `atCoordinate` Coordinate {..} = (grid ! row) ! column

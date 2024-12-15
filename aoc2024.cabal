@@ -32,6 +32,14 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day15
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Warehouse
+                    , BigWarehouse
+    build-depends:    utils
+    hs-source-dirs:   day15
+
 executable day14
     import:           common
     main-is:          Main.hs
