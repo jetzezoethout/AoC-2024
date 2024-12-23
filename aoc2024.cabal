@@ -13,6 +13,7 @@ common common
                         , InstanceSigs
                         , MonadComprehensions
                         , TupleSections
+                        , LambdaCase
     build-depends:    base ^>=4.17.2.1
                     , text
                     , split
@@ -32,6 +33,14 @@ library utils
                     , ProcessFile
                     , LocatedChar
     hs-source-dirs:   utils
+
+executable day19
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Towel
+                    , Cached
+    build-depends:    utils
+    hs-source-dirs:   day19
 
 executable day17
     import:           common
