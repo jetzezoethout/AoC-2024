@@ -34,6 +34,13 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day23
+    import:           common
+    main-is:          Main.hs
+    other-modules:    LanParty
+    build-depends:    utils
+    hs-source-dirs:   day23
+
 executable day22
     import:           common
     main-is:          Main.hs
