@@ -20,6 +20,7 @@ common common
                     , mtl
                     , vector
                     , clock
+                    , PSQueue
     default-language: Haskell2010
 
 library utils
@@ -31,6 +32,15 @@ library utils
                     , ProcessFile
                     , LocatedChar
     hs-source-dirs:   utils
+
+executable day16
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Maze
+                    , Node
+                    , Move
+    build-depends:    utils
+    hs-source-dirs:   day16
 
 executable day15
     import:           common
