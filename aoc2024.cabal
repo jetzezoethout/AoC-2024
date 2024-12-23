@@ -33,6 +33,13 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day17
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Computer
+    build-depends:    utils
+    hs-source-dirs:   day17
+
 executable day16
     import:           common
     main-is:          Main.hs
