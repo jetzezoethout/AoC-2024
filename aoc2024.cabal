@@ -34,6 +34,13 @@ library utils
                     , LocatedChar
     hs-source-dirs:   utils
 
+executable day22
+    import:           common
+    main-is:          Main.hs
+    other-modules:    SecretNumber
+    build-depends:    utils
+    hs-source-dirs:   day22
+
 executable day19
     import:           common
     main-is:          Main.hs
