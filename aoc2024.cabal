@@ -56,6 +56,13 @@ executable day19
     build-depends:    utils
     hs-source-dirs:   day19
 
+executable day18
+    import:           common
+    main-is:          Main.hs
+    other-modules:    MemorySpace
+    build-depends:    utils
+    hs-source-dirs:   day18
+
 executable day17
     import:           common
     main-is:          Main.hs
