@@ -48,6 +48,13 @@ executable day22
     build-depends:    utils
     hs-source-dirs:   day22
 
+executable day20
+    import:           common
+    main-is:          Main.hs
+    other-modules:    RaceTrack
+    build-depends:    utils
+    hs-source-dirs:   day20
+
 executable day19
     import:           common
     main-is:          Main.hs
