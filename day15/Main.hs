@@ -1,11 +1,13 @@
 module Main where
 
-import           BigWarehouse    (blowUp, collectBoxes, doBigMoves, sumBigGPS)
+import           BigBox          (parseBigBoxes)
+import           Box             (getTotalGps)
 import           Data.List.Split (splitOn)
 import qualified Data.Text       as T
 import           ProcessFile     (processFile)
-import           Warehouse       (doMoves, findRobot, parseBoxes, parseMoves,
-                                  parseWarehouse, sumGPS)
+import           Robot           (findRobot, parseMoves)
+import           SmallBox        (parseSmallBoxes)
+import           Warehouse       (blowUp, parseWarehouse)
 
 main :: IO ()
 main =
@@ -14,20 +16,11 @@ main =
         warehousePart = head parts
         moves = parseMoves $ parts !! 1
         warehouse = parseWarehouse warehousePart
-        boxes_ = parseBoxes warehousePart
+        smallBoxes = parseSmallBoxes warehousePart
         robot = findRobot warehousePart
-        (finalBoxes, finalRobot) = doMoves warehouse boxes_ robot moves
-    print $ sumGPS finalBoxes
+    print $ getTotalGps warehouse robot smallBoxes moves
     let bigMap = map blowUp warehousePart
         bigWarehouse = parseWarehouse bigMap
-        bigBoxes = collectBoxes bigMap
+        bigBoxes = parseBigBoxes bigMap
         bigRobot = findRobot bigMap
-        (finalBigRobot, finalBigBoxes) =
-          doBigMoves bigWarehouse bigBoxes bigRobot moves
-    -- mapM_ TIO.putStrLn bigMap
-    -- print $ bigWarehouse `atCoordinate` Coordinate 4 18
-    -- mapM_ print $ boxes finalBigBoxes
-    -- putStrLn ""
-    -- print finalBigRobot
-    print $ sumBigGPS finalBigBoxes
-    -- print $ length moves
+    print $ getTotalGps bigWarehouse bigRobot bigBoxes moves

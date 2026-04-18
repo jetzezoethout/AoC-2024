@@ -97,7 +97,10 @@ executable day15
     import:           common
     main-is:          Main.hs
     other-modules:    Warehouse
-                    , BigWarehouse
+                    , Robot
+                    , Box
+                    , SmallBox
+                    , BigBox
     build-depends:    utils
     hs-source-dirs:   day15
 
