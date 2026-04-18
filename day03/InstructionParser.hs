@@ -1,7 +1,8 @@
 module InstructionParser where
 
 import           Control.Applicative (Alternative (..))
-import           Control.Monad.State (StateT (StateT), evalStateT, guard)
+import           Control.Monad       (guard)
+import           Control.Monad.State (StateT (StateT), evalStateT)
 import           Data.Maybe          (catMaybes, fromJust)
 import           Data.Text           (Text)
 import qualified Data.Text           as T

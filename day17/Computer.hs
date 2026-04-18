@@ -1,6 +1,7 @@
 module Computer where
 
-import           Control.Monad.Reader (ReaderT (runReaderT), asks, unless)
+import           Control.Monad        (unless)
+import           Control.Monad.Reader (ReaderT (runReaderT), asks)
 import           Control.Monad.State  (State, evalState, gets, modify)
 import           Data.Bits            (xor)
 import           Data.IntMap          (IntMap, (!?))
