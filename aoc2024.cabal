@@ -55,6 +55,15 @@ executable day22
     build-depends:    utils
     hs-source-dirs:   day22
 
+executable day21
+    import:           common
+    main-is:          Main.hs
+    other-modules:    KeyPad
+                    , NumericKey
+                    , ArrowKey
+    build-depends:    utils
+    hs-source-dirs:   day21
+
 executable day20
     import:           common
     main-is:          Main.hs
