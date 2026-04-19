@@ -4,8 +4,6 @@ import           Control.Monad        (unless)
 import           Control.Monad.Reader (ReaderT (runReaderT), asks)
 import           Control.Monad.State  (State, evalState, gets, modify)
 import           Data.Bits            (xor)
-import           Data.IntMap          (IntMap, (!?))
-import qualified Data.IntMap          as M
 import           Data.Maybe           (fromJust)
 import           Data.Text            (Text)
 import qualified Data.Text            as T
@@ -41,18 +39,18 @@ setB newB computer = computer {registerB = newB}
 setC :: Int -> Computer -> Computer
 setC newC computer = computer {registerC = newC}
 
-type Program = IntMap Int
+type Program = [Int]
 
 parseProgram :: Text -> Program
-parseProgram =
-  M.fromList
-    . zip [0 ..]
-    . map parseUnsignedInt
-    . T.splitOn ","
-    . (!! 1)
-    . T.splitOn ": "
+parseProgram = map parseUnsignedInt . T.splitOn "," . (!! 1) . T.splitOn ": "
 
 type Runtime = ReaderT Program (State Computer)
+
+(!?) :: [a] -> Int -> Maybe a
+xs !? idx =
+  if idx < length xs
+    then Just (xs !! idx)
+    else Nothing
 
 scanPointer :: Runtime (Maybe Int)
 scanPointer = do
@@ -150,3 +148,14 @@ execute = go
 
 run :: Program -> Computer -> [Int]
 run program = evalState (runReaderT execute program)
+
+findLeastFixPoint :: Program -> Computer -> Int
+findLeastFixPoint program computer = head $ go [0] $ reverse program
+  where
+    go candidates [] = candidates
+    go candidates (next:remaining) =
+      let nextRegister = filter (test next) $ candidates >>= expansionInterval
+       in go nextRegister remaining
+    test targetValue registerValue =
+      head (run program $ setA registerValue computer) == targetValue
+    expansionInterval register = [8 * register .. 8 * register + 7]
