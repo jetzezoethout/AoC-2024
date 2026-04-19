@@ -1,12 +1,13 @@
 module RaceTrack where
 
 import           Control.Monad (guard)
-import           Coordinate    (Coordinate)
-import           Data.Map      ((!), (!?))
+import           Coordinate    (Coordinate (..), addCoordinate,
+                                manhattanDistance)
+import           Data.Map      (Map, (!?))
 import qualified Data.Map      as M
-import           Data.Maybe    (mapMaybe)
+import           Data.Maybe    (maybeToList)
 import           Data.Text     (Text)
-import           Direction     (allDirections, moveTowards, moveTowardsBy)
+import           Direction     (allDirections, moveTowards)
 import           Grid          (Grid, atCoordinate, parseGrid)
 import           LocatedChar   (LocatedChar (..), locateText)
 
@@ -54,14 +55,29 @@ findPath RaceTrack {..} = go start firstStep
                 $ map (current `moveTowards`) allDirections
          in previous : go current next
 
-getCheats :: Path -> [Int]
-getCheats path = path >>= cheatAt
+type PathMap = Map Coordinate Int
+
+getPathMap :: Path -> PathMap
+getPathMap path = M.fromList $ zip path [0 ..]
+
+manhattanDisc :: Coordinate -> Int -> [Coordinate]
+manhattanDisc center distance =
+  [ center `addCoordinate` Coordinate row column
+  | row <- [-distance .. distance]
+  , column <- [abs row - distance .. distance - abs row]
+  ]
+
+getCheats :: PathMap -> Int -> [Int]
+getCheats pathMap maxShortcut =
+  [ cheat
+  | start <- M.keys pathMap
+  , end <- manhattanDisc start maxShortcut
+  , cheat <- maybeToList $ getCheat start end
+  ]
   where
-    positions = M.fromList $ zip path [0 ..]
-    cheatAt coord =
-      mapMaybe (cheatTowards coord (positions ! coord)) allDirections
-    cheatTowards coord position dir = do
-      reappearPosition <- positions !? moveTowardsBy coord dir 2
-      let won = reappearPosition - position - 2
-      guard $ won > 0
-      return won
+    getCheat start end = do
+      startIndex <- pathMap !? start
+      endIndex <- pathMap !? end
+      let shortcutLength = manhattanDistance start end
+      guard $ startIndex + shortcutLength < endIndex
+      return $ endIndex - startIndex - shortcutLength
