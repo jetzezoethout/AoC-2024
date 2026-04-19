@@ -1,8 +1,10 @@
 module ArrowKey where
 
-import           Coordinate (Coordinate (..))
-import           Direction  (Direction (..))
-import           KeyPad     (KeyPad (..), paths)
+import           Cached        (Cached, runMemoized, withCache)
+import           Control.Monad (zipWithM)
+import           Coordinate    (Coordinate (..))
+import           Direction     (Direction (..))
+import           KeyPad        (KeyPad (..), Path, paths)
 
 data ArrowKey
   = ArrowKey Direction
@@ -26,15 +28,28 @@ instance KeyPad ArrowKey where
   applyKey :: ArrowKey
   applyKey = ApplyKey
 
-optimalForSequence :: KeyPad a => Int -> [a] -> Int
-optimalForSequence numArrowPads keys =
-  sum $ (zipWith $ optimalBetweenKeys numArrowPads) (applyKey : keys) keys
+data ResolutionData = ResolutionData
+  { numArrowPads :: Int
+  , path         :: Path
+  } deriving (Eq, Ord)
 
-optimalBetweenKeys :: KeyPad a => Int -> a -> a -> Int
-optimalBetweenKeys numArrowPads from to =
-  minimum $ map (optimalForPath $ numArrowPads - 1) $ paths from to
-
-optimalForPath :: Int -> [Direction] -> Int
-optimalForPath 0 path = length path + 1
-optimalForPath numArrowPads path =
-  optimalForSequence numArrowPads (map ArrowKey path <> [ApplyKey])
+shortestHumanLength :: KeyPad a => Int -> [a] -> Int
+shortestHumanLength humanPadIndex targetSequence =
+  runMemoized $ optimalForSequence humanPadIndex targetSequence
+  where
+    optimalForSequence :: KeyPad a => Int -> [a] -> Cached ResolutionData Int
+    optimalForSequence numArrowPads keys = do
+      subOptima <-
+        zipWithM (optimalBetweenKeys numArrowPads) (applyKey : keys) keys
+      return $ sum subOptima
+    optimalBetweenKeys :: KeyPad a => Int -> a -> a -> Cached ResolutionData Int
+    optimalBetweenKeys numArrowPads from to = do
+      possibilities <- mapM (optimalForPath $ numArrowPads - 1) (paths from to)
+      return $ minimum possibilities
+    optimalForPath :: Int -> Path -> Cached ResolutionData Int
+    optimalForPath numArrowPads path = withCache resolve ResolutionData {..}
+    resolve :: ResolutionData -> Cached ResolutionData Int
+    resolve ResolutionData {..} =
+      if numArrowPads == 0
+        then return (length path + 1)
+        else optimalForSequence numArrowPads $ map ArrowKey path <> [ApplyKey]

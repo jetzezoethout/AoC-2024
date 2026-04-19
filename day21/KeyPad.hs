@@ -1,6 +1,6 @@
 module KeyPad where
 
-import           Coordinate
+import           Coordinate (Coordinate (..))
 import           Data.Maybe (maybeToList)
 import           Direction  (Direction (..), moveTowards)
 

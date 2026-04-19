@@ -1,7 +1,7 @@
 module NumericKey where
 
-import           ArrowKey   (optimalForSequence)
-import           Coordinate
+import           ArrowKey   (shortestHumanLength)
+import           Coordinate (Coordinate (..))
 import           Data.Char  (digitToInt)
 import           Data.Text  (Text)
 import qualified Data.Text  as T
@@ -41,5 +41,6 @@ instance KeyPad NumericKey where
   applyKey :: NumericKey
   applyKey = ApplyKey
 
-complexity :: [NumericKey] -> Int
-complexity keys = optimalForSequence 3 keys * numericPart keys
+complexity :: Int -> [NumericKey] -> Int
+complexity numArrowPads keys =
+  shortestHumanLength numArrowPads keys * numericPart keys

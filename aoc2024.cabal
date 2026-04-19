@@ -32,6 +32,7 @@ library utils
                     , Parsers
                     , ProcessFile
                     , LocatedChar
+                    , Cached
     hs-source-dirs:   utils
 
 executable day25
@@ -75,7 +76,6 @@ executable day19
     import:           common
     main-is:          Main.hs
     other-modules:    Towel
-                    , Cached
     build-depends:    utils
     hs-source-dirs:   day19
 
