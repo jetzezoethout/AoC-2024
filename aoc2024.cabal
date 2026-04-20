@@ -53,6 +53,7 @@ executable day22
     import:           common
     main-is:          Main.hs
     other-modules:    SecretNumber
+                    , DifferenceSequence
     build-depends:    utils
     hs-source-dirs:   day22
 
