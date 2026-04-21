@@ -1,19 +1,19 @@
 module DifferenceSequence where
 
-import           Data.IntMap  (IntMap)
-import qualified Data.IntMap  as M
-import           Data.IntSet  (IntSet)
-import qualified Data.IntSet  as S
-import           Data.List    (foldl')
-import           SecretNumber (nextSecretNumber)
+import           Control.Monad               (unless)
+import           Control.Monad.ST
+import           Data.Foldable               (traverse_)
+import           Data.Vector.Unboxed.Mutable (MVector)
+import qualified Data.Vector.Unboxed.Mutable as V
+import           SecretNumber                (nextSecretNumber)
 
 newtype DifferenceSequence = DifferenceSequence
   { hash :: Int
    -- ^ [a,b,c,d] -> 19^3 (a+9) + 19^2 (b+9) + 19 (c+9) + (d+9)
   } deriving (Show)
 
-empty :: DifferenceSequence
-empty = DifferenceSequence 0
+emptyDiffSequence :: DifferenceSequence
+emptyDiffSequence = DifferenceSequence 0
 
 cutoffModulus :: Int
 cutoffModulus = 19 ^ (3 :: Int)
@@ -22,37 +22,59 @@ shiftSequence :: Int -> DifferenceSequence -> DifferenceSequence
 shiftSequence newDiff DifferenceSequence {..} =
   DifferenceSequence $ 19 * (hash `mod` cutoffModulus) + (newDiff + 9)
 
-processMonkey :: IntMap Int -> Int -> IntMap Int
-processMonkey returnsMap initialSecretNumber =
-  go 0 initialSecretNumber empty S.empty returnsMap
+totalHashes :: Int
+totalHashes = 19 ^ (4 :: Int)
+
+processMonkey :: MVector s Int -> Int -> ST s ()
+processMonkey bananasArray initialSecretNumber = do
+  seenArray <- V.new totalHashes :: ST s (MVector s Bool)
+  go 0 initialSecretNumber emptyDiffSequence seenArray bananasArray
   where
-    go :: Int -> Int -> DifferenceSequence -> IntSet -> IntMap Int -> IntMap Int
-    go 2000 _ _ _ acc = acc
-    go stepsTaken secretNumber differenceSequence seen acc =
-      let returns = secretNumber `mod` 10
+    go ::
+         Int
+      -> Int
+      -> DifferenceSequence
+      -> MVector s Bool
+      -> MVector s Int
+      -> ST s ()
+    go 2000 _ _ _ _ = return ()
+    go stepsTaken secretNumber differenceSequence seenArray bananasArray' = do
+      let currentBananas = secretNumber `mod` 10
           newSecretNumber = nextSecretNumber secretNumber
-          newReturns = newSecretNumber `mod` 10
-          newDifference = newReturns - returns
+          newBananas = newSecretNumber `mod` 10
+          newDifference = newBananas - currentBananas
           newDifferenceSequence = shiftSequence newDifference differenceSequence
           newHash = hash newDifferenceSequence
-          newAcc =
-            if stepsTaken < 4 || newHash `S.member` seen
-              then acc
-              else M.insertWith (+) newHash newReturns acc
-          newSeen =
-            if stepsTaken < 4
-              then seen
-              else newHash `S.insert` seen
-       in go
-            (stepsTaken + 1)
-            newSecretNumber
-            newDifferenceSequence
-            newSeen
-            newAcc
+      seenNewHash <- V.read seenArray newHash
+      unless (stepsTaken < 4 || seenNewHash)
+        $ V.modify bananasArray' (+ newBananas) newHash
+      unless (stepsTaken < 4) $ V.write seenArray newHash True
+      go
+        (stepsTaken + 1)
+        newSecretNumber
+        newDifferenceSequence
+        seenArray
+        bananasArray'
 
-processMonkeys :: [Int] -> IntMap Int
-processMonkeys = foldl' processMonkey M.empty
+processMonkeys :: MVector s Int -> [Int] -> ST s ()
+processMonkeys bananasArray = traverse_ (processMonkey bananasArray)
 
-optimalBananas :: [Int] -> Int
-optimalBananas initialSecretNumbers =
-  maximum $ map snd $ M.toList $ processMonkeys initialSecretNumbers
+findMaximumBananas :: MVector s Int -> ST s Int
+findMaximumBananas bananasArray = go bananasArray 0 0
+  where
+    go :: MVector s Int -> Int -> Int -> ST s Int
+    go bananasArray' n acc = do
+      if n == V.length bananasArray'
+        then return acc
+        else do
+          next <- V.read bananasArray' n
+          go bananasArray' (n + 1) $ max next acc
+
+optimizeBananas :: [Int] -> Int
+optimizeBananas initialSecretNumbers = runST go
+  where
+    go :: ST s Int
+    go = do
+      returnsArray <- V.new totalHashes :: ST s (MVector s Int)
+      processMonkeys returnsArray initialSecretNumbers
+      findMaximumBananas returnsArray
