@@ -42,6 +42,13 @@ executable day25
     build-depends:    utils
     hs-source-dirs:   day25
 
+executable day24
+    import:           common
+    main-is:          Main.hs
+    other-modules:    Wire
+    build-depends:    utils
+    hs-source-dirs:   day24
+
 executable day23
     import:           common
     main-is:          Main.hs
