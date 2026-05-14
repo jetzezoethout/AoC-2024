@@ -10,3 +10,4 @@ main =
     print
       $ length
       $ [(lock, key) | lock <- locks, key <- keys, key `fitsInside` lock]
+    putStrLn "Deliver the Chronicle!"
