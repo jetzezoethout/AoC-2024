@@ -46,6 +46,8 @@ executable day24
     import:           common
     main-is:          Main.hs
     other-modules:    Wire
+                    , Gate
+                    , Connection
     build-depends:    utils
     hs-source-dirs:   day24
 

@@ -1,79 +1,54 @@
 module Wire where
 
-import           Data.Bits       (xor, (.&.), (.|.))
-import           Data.List       (sortBy)
-import           Data.List.Split (splitOn)
-import           Data.Map        (Map, (!))
-import qualified Data.Map        as M
-import           Data.Text       (Text)
-import qualified Data.Text       as T
-import           Parsers         (parseInt)
+import           Data.Map   (Map)
+import qualified Data.Map   as M
+import           Data.Maybe (fromJust)
+import           Data.Text  (Text)
+import qualified Data.Text  as T
+import           Gate       (Signal)
+import           Parsers    (parseInt)
 
 type WireLabel = Text
 
-data Gate
-  = And
-  | Or
-  | Xor
-  deriving (Show)
+data SourceTag
+  = X
+  | Y
+  deriving (Show, Eq, Ord)
 
-parseGate :: Text -> Gate
-parseGate "AND" = And
-parseGate "OR"  = Or
-parseGate "XOR" = Xor
-parseGate _     = error "invalid connector"
+fromChar :: Char -> Maybe SourceTag
+fromChar 'x' = Just X
+fromChar 'y' = Just Y
+fromChar _   = Nothing
 
-type Signal = Int
+data InputWire = InputWire
+  { sourceTag  :: SourceTag
+  , inputIndex :: Int
+  } deriving (Show, Eq, Ord)
 
-gateEffect :: Gate -> Signal -> Signal -> Signal
-gateEffect And = (.&.)
-gateEffect Or  = (.|.)
-gateEffect Xor = xor
+toInputWire :: WireLabel -> Maybe InputWire
+toInputWire text = do
+  let (ch, chs) = fromJust $ T.uncons text
+  sourceTag <- fromChar ch
+  let inputIndex = parseInt chs
+  return InputWire {..}
 
-data Wire
-  = Source
-      { signal :: Signal
-      }
-  | Connected
-      { gate       :: Gate
-      , leftInput  :: WireLabel
-      , rightInput :: WireLabel
-      }
-  deriving (Show)
-
-parseConnected :: Text -> Wire
-parseConnected text =
-  let parts = T.words text
-   in Connected
-        { gate = parseGate $ parts !! 1
-        , leftInput = head parts
-        , rightInput = parts !! 2
-        }
-
-type WireMap = Map WireLabel Wire
-
-parseWireMap :: Text -> WireMap
-parseWireMap text =
-  M.fromList
-    $ map parseSourceLine (head sections)
-        <> map parseConnectedLine (sections !! 1)
+parseInputWireSignals :: [Text] -> Map InputWire Signal
+parseInputWireSignals = M.fromList . map parseLine
   where
-    sections = splitOn [""] $ T.lines text
-    parseSourceLine textLine =
+    parseLine :: Text -> (InputWire, Signal)
+    parseLine textLine =
       let parts = T.splitOn ": " textLine
-       in (head parts, Source $ parseInt $ parts !! 1)
-    parseConnectedLine textLine =
-      let parts = T.splitOn " -> " textLine
-       in (parts !! 1, parseConnected $ head parts)
+       in (fromJust $ toInputWire $ head parts, parseInt $ parts !! 1)
 
-zWires :: WireMap -> [WireLabel]
-zWires wireMap =
-  sortBy (flip compare) $ filter ((== 'z') . T.head) $ M.keys wireMap
+newtype OutputWire = OutputWire
+  { outputIndex :: Int
+  } deriving (Show)
 
-evaluate :: WireMap -> WireLabel -> Int
-evaluate wireMap = go
-  where
-    go wireLabel =
-      case wireMap ! wireLabel of
-        Source {..}    -> signal
-        Connected {..} -> gateEffect gate (go leftInput) (go rightInput)
+outputWireLabel :: OutputWire -> WireLabel
+outputWireLabel OutputWire {..} =
+  "z" <> T.justifyRight 2 '0' (T.pack $ show outputIndex)
+
+toOutputWire :: WireLabel -> Maybe OutputWire
+toOutputWire text =
+  let (ch, chs) = fromJust $ T.uncons text
+   in [OutputWire {outputIndex = parseInt chs} | ch == 'z']
